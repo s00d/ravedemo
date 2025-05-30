@@ -121,45 +121,49 @@ const updateMatrixParticles = () => {
 }
 
 const handleClick = (e: MouseEvent) => {
-  if (!matrixCanvas.value) return
-  const rect = matrixCanvas.value.getBoundingClientRect()
+  if (!matrixCanvas.value || !sectionRef.value) return
+  const rect = sectionRef.value.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
-  createMatrixParticles(x, y)
+
+  // Создаем частицы только если клик был внутри секции матрицы
+  if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+    createMatrixParticles(x, y)
+  }
 }
 
 const handleMouseMove = (e: MouseEvent) => {
-  if (!matrixCanvas.value) return
-  const rect = matrixCanvas.value.getBoundingClientRect()
+  if (!matrixCanvas.value || !sectionRef.value) return
+  const rect = sectionRef.value.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
 
-  // Добавляем точку в след
-  mouseTrail.push({ x, y, life: 1 })
+  // Добавляем точку в след только если курсор находится над секцией матрицы
+  if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+    mouseTrail.push({ x, y, life: 1 })
 
-  // Ограничиваем длину следа
-  if (mouseTrail.length > 20) {
-    mouseTrail.shift()
-  }
-
-  // Добавляем параллакс эффект для блоков
-  const { clientX, clientY } = e
-  const { left, top, width, height } = sectionRef.value?.getBoundingClientRect() || { left: 0, top: 0, width: 1, height: 1 }
-  const mouseX = (clientX - left) / width
-  const mouseY = (clientY - top) / height
-
-  gsap.to('.matrix-item', {
-    x: (mouseX - 0.5) * 30,
-    y: (mouseY - 0.5) * 30,
-    rotationX: (mouseY - 0.5) * 10,
-    rotationY: (mouseX - 0.5) * 10,
-    duration: 1.2,
-    ease: 'power2.out',
-    stagger: {
-      amount: 0.3,
-      from: 'random'
+    // Ограничиваем длину следа
+    if (mouseTrail.length > 20) {
+      mouseTrail.shift()
     }
-  })
+
+    // Добавляем параллакс эффект для блоков
+    const mouseX = x / rect.width
+    const mouseY = y / rect.height
+
+    gsap.to('.matrix-item', {
+      x: (mouseX - 0.5) * 30,
+      y: (mouseY - 0.5) * 30,
+      rotationX: (mouseY - 0.5) * 10,
+      rotationY: (mouseX - 0.5) * 10,
+      duration: 1.2,
+      ease: 'power2.out',
+      stagger: {
+        amount: 0.3,
+        from: 'random'
+      }
+    })
+  }
 }
 
 const drawMatrixTrail = () => {
@@ -185,8 +189,33 @@ const initMatrix = () => {
   ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  // Устанавливаем размер canvas равным размеру секции
+  const updateCanvasSize = () => {
+    if (!canvas || !sectionRef.value) return
+    const rect = sectionRef.value.getBoundingClientRect()
+    canvas.width = rect.width
+    canvas.height = rect.height
+  }
+
+  // Инициализируем размер и добавляем обработчик изменения размера окна
+  updateCanvasSize()
+  window.addEventListener('resize', updateCanvasSize)
+
+  // Создаем начальные частицы матрицы
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * canvas.width
+    const y = Math.random() * canvas.height
+    const char = String.fromCharCode(0x30A0 + Math.random() * 96)
+    matrixParticles.push({
+      x,
+      y,
+      vx: 0,
+      vy: Math.random() * 2 + 1,
+      char,
+      life: 1
+    })
+  }
+
   isInitialized = true
 }
 
@@ -196,16 +225,21 @@ const startAnimation = () => {
   const draw = () => {
     if (!ctx || !matrixCanvas.value) return
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    // Очищаем canvas с небольшим затуханием
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
     ctx.fillRect(0, 0, matrixCanvas.value.width, matrixCanvas.value.height)
 
     // Обновляем и рисуем частицы матрицы
     matrixParticles = matrixParticles.filter(particle => {
-      particle.x += particle.vx
       particle.y += particle.vy
-      particle.life -= 0.02
+      
+      // Если частица вышла за пределы экрана, возвращаем её вверх
+      if (particle.y > matrixCanvas.value!.height) {
+        particle.y = 0
+        particle.x = Math.random() * matrixCanvas.value!.width
+      }
 
-      if (particle.life > 0 && ctx) {
+      if (ctx) {
         ctx.fillStyle = `rgba(0, 255, 0, ${particle.life})`
         ctx.font = '14px monospace'
         ctx.fillText(particle.char, particle.x, particle.y)
@@ -410,9 +444,10 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.3;
+  opacity: 0.5;
   z-index: 1;
-  cursor: crosshair;
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .matrix-content {
