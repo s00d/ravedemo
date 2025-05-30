@@ -117,49 +117,22 @@ const findPath = () => {
   currentPathIndex.value = 0
 }
 
-// Функция для получения скролла родительского блока App
-const getAppScroll = () => {
-  if (appElementRef.value) {
-    return {
-      x: appElementRef.value.scrollLeft,
-      y: appElementRef.value.scrollTop
-    }
-  }
-  return { x: 0, y: 0 }
-}
-
 // Функция для получения текущих координат курсора с учетом скролла App
 const getMousePosition = (event: MouseEvent) => {
-  const appScroll = getAppScroll()
-  if (!appElementRef.value) return { x: event.pageX, y: event.pageY }
-
-  // Получаем позицию App относительно viewport
-  const appRect = appElementRef.value.getBoundingClientRect()
-  
-  // Вычисляем координаты относительно App
+  // Используем clientX/clientY вместо pageX/pageY для получения координат относительно viewport
   return {
-    x: event.clientX - appRect.left + appScroll.x,
-    y: event.clientY - appRect.top + appScroll.y
+    x: event.clientX,
+    y: event.clientY
   }
 }
 
 // Функция для проверки, находится ли охотник на экране
 const isOnScreen = computed(() => {
-  if (!appElementRef.value) return true
-
-  const appRect = appElementRef.value.getBoundingClientRect()
-  const appScroll = getAppScroll()
-  
-  const screenLeft = appScroll.x - SCREEN_MARGIN
-  const screenRight = appScroll.x + appRect.width + SCREEN_MARGIN
-  const screenTop = appScroll.y - SCREEN_MARGIN
-  const screenBottom = appScroll.y + appRect.height + SCREEN_MARGIN
-
   return (
-    position.value.x >= screenLeft &&
-    position.value.x <= screenRight &&
-    position.value.y >= screenTop &&
-    position.value.y <= screenBottom
+    position.value.x >= 0 &&
+    position.value.x <= window.innerWidth &&
+    position.value.y >= 0 &&
+    position.value.y <= window.innerHeight
   )
 })
 
@@ -197,8 +170,7 @@ const updatePosition = (timestamp: number) => {
     findPath()
   }
 
-  // Вычисляем направление к текущей точке пути с учетом скролла
-  const scroll = getAppScroll()
+  // Вычисляем направление к текущей точке пути
   const dx = currentTarget.value.x - position.value.x
   const dy = currentTarget.value.y - position.value.y
   const distance = Math.sqrt(dx * dx + dy * dy)
@@ -232,9 +204,6 @@ const updatePosition = (timestamp: number) => {
       velocity.value.x = (velocity.value.x / speed) * currentMaxSpeed
       velocity.value.y = (velocity.value.y / speed) * currentMaxSpeed
     }
-  } else {
-    velocity.value.x *= 0.9
-    velocity.value.y *= 0.9
   }
 
   // Применяем трение
@@ -251,17 +220,9 @@ const updatePosition = (timestamp: number) => {
 
   // Если охотник вышел за пределы экрана, возвращаем его на экран
   if (!isOnScreen.value) {
-    if (appElementRef.value) {
-      const appRect = appElementRef.value.getBoundingClientRect()
-      const appScroll = getAppScroll()
-      
-      const centerX = appRect.width / 2 + appScroll.x
-      const centerY = appRect.height / 2 + appScroll.y
-      
-      // Плавно перемещаем охотника к центру App
-      position.value.x += (centerX - position.value.x) * 0.1
-      position.value.y += (centerY - position.value.y) * 0.1
-    }
+    // Плавно перемещаем охотника к центру экрана
+    position.value.x += (window.innerWidth / 2 - position.value.x) * 0.1
+    position.value.y += (window.innerHeight / 2 - position.value.y) * 0.1
   }
 
   // Запускаем следующий кадр
@@ -278,9 +239,9 @@ const handleMouseMove = (event: MouseEvent) => {
 }
 
 const handleScroll = () => {
-  // При скролле обновляем целевую позицию с учетом новых координат скролла App
-  if (isVisible.value) {
-    const mousePos = getMousePosition(window.event as MouseEvent)
+  // При скролле обновляем целевую позицию
+  if (isVisible.value && window.event instanceof MouseEvent) {
+    const mousePos = getMousePosition(window.event)
     if (mousePos.x !== 0 && mousePos.y !== 0) {
       targetPosition.value = mousePos
     }
@@ -356,25 +317,20 @@ const destroyHunter = () => {
 
 // Функция для сброса состояния охотника
 const resetHunter = () => {
-  if (appElementRef.value) {
-    const appRect = appElementRef.value.getBoundingClientRect()
-    const appScroll = getAppScroll()
-    
-    // Создаем нового охотника в случайной позиции на экране
-    const randomX = Math.random() * appRect.width + appScroll.x
-    const randomY = Math.random() * appRect.height + appScroll.y
-    
-    position.value = { x: randomX, y: randomY }
-    targetPosition.value = { x: randomX, y: randomY }
-    velocity.value = { x: 0, y: 0 }
-    rotation.value = 0
-    isDestroying.value = false
-    isVisible.value = true
-    isColliding.value = false
+  // Создаем нового охотника в случайной позиции на экране
+  const randomX = Math.random() * window.innerWidth
+  const randomY = Math.random() * window.innerHeight
+  
+  position.value = { x: randomX, y: randomY }
+  targetPosition.value = { x: randomX, y: randomY }
+  velocity.value = { x: 0, y: 0 }
+  rotation.value = 0
+  isDestroying.value = false
+  isVisible.value = true
+  isColliding.value = false
 
-    // Создаем звук появления
-    createSound(880, 0.3) // Ля второй октавы, длительность 0.3 секунды
-  }
+  // Создаем звук появления
+  createSound(880, 0.3)
 }
 
 // Обработчик клика по охотнику
@@ -385,29 +341,19 @@ const handleHunterClick = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-  // Сохраняем ссылку на элемент App
-  appElementRef.value = document.querySelector('.app') as HTMLElement
-
-  // Устанавливаем начальную позицию с учетом скролла App
-  if (appElementRef.value) {
-    const appRect = appElementRef.value.getBoundingClientRect()
-    const appScroll = getAppScroll()
-    
-    const centerX = appRect.width / 2 + appScroll.x
-    const centerY = appRect.height / 2 + appScroll.y
-    
-    position.value = { x: centerX, y: centerY }
-    targetPosition.value = { x: centerX, y: centerY }
+  // Устанавливаем начальную позицию в центре экрана
+  position.value = {
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2
   }
+  targetPosition.value = { ...position.value }
   
   // Запускаем анимацию
   animationFrame = requestAnimationFrame(updatePosition)
   
   // Добавляем слушатели событий
   window.addEventListener('mousemove', handleMouseMove)
-  if (appElementRef.value) {
-    appElementRef.value.addEventListener('scroll', handleScroll, { passive: true })
-  }
+  window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('resize', handleResize)
 
   // Инициализируем AudioContext при первом взаимодействии пользователя
@@ -424,11 +370,8 @@ onUnmounted(() => {
   // Очищаем анимацию и слушатели
   cancelAnimationFrame(animationFrame)
   window.removeEventListener('mousemove', handleMouseMove)
-  if (appElementRef.value) {
-    appElementRef.value.removeEventListener('scroll', handleScroll)
-  }
+  window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('resize', handleResize)
-  appElementRef.value = null
 
   // Очищаем аудио ресурсы
   if (oscillator.value) {
@@ -452,7 +395,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 99999;
 }
 
 .hunter-counter {
@@ -465,7 +408,7 @@ onUnmounted(() => {
   border-radius: 20px;
   font-size: 18px;
   font-weight: bold;
-  z-index: 10000;
+  z-index: 100000;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
   border: 2px solid rgba(255, 0, 0, 0.5);
   backdrop-filter: blur(5px);
@@ -479,7 +422,7 @@ onUnmounted(() => {
 }
 
 .cursor-hunter {
-  position: absolute;
+  position: fixed;
   left: var(--x);
   top: var(--y);
   width: var(--size);
@@ -489,7 +432,7 @@ onUnmounted(() => {
     rotate(calc(var(--rotation) + 90deg))
     scale(var(--scale));
   pointer-events: auto;
-  z-index: 9999;
+  z-index: 99999;
   transition: 
     transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.3s ease;

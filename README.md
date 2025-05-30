@@ -1,39 +1,99 @@
-# .
+# 🌌 Rave Demo
 
-This template should help get you started developing with Vue 3 in Vite.
+[![Vue](https://img.shields.io/badge/Vue-3.0-4FC08D?style=flat&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Recommended IDE Setup
+Демонстрационный проект современных веб-технологий и визуальных эффектов. Коллекция интерактивных секций с различными визуальными эффектами, анимациями и интерактивными элементами.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🚀 Демо
 
-## Type Support for `.vue` Imports in TS
+🌐 [https://s00d.github.io/ravedemo/](https://s00d.github.io/ravedemo/)
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## 📊 Статистика
 
-## Customize configuration
+- Vue: 96.0%
+- TypeScript: 3.0%
+- Other: 1.0%
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## 🛠 Технологии
 
-## Project Setup
+- Vue 3 + TypeScript
+- Vite
+- SCSS
+- Web Audio API
+- Canvas API
+- WebGL (через Three.js)
+- GitHub Actions
 
-```sh
-npm install
+## 📦 Установка
+
+```bash
+# Клонирование репозитория
+git clone https://github.com/s00d/ravedemo.git
+
+# Переход в директорию проекта
+cd ravedemo
+
+# Установка зависимостей
+pnpm install
+
+# Запуск сервера разработки
+pnpm dev
+
+# Сборка проекта
+pnpm build
 ```
 
-### Compile and Hot-Reload for Development
+## 🎨 Компоненты
 
-```sh
-npm run dev
-```
+### Визуальные эффекты
+- `MatrixSection` - Матричный дождь с интерактивными частицами
+- `SauronEye` - Всевидящее око с эффектом слежения
+- `CosmicPortal` - Космический портал с эффектом воронки
+- `CyberpunkPortal` - Киберпанк-портал с неоновыми эффектами
+- `NeuralNetwork` - Визуализация нейронной сети
 
-### Type-Check, Compile and Minify for Production
+### Интерактивные секции
+- `InteractiveSection` - Интерактивные элементы с эффектами
+- `ParallaxSection` - Секция с параллакс-эффектами
+- `AnimatedSection` - Анимированные элементы
+- `FeaturesSection` - Демонстрация возможностей
 
-```sh
-npm run build
-```
+### Глобальные компоненты
+- `GlobalEffects` - Глобальные визуальные эффекты
+- `InteractiveEffects` - Интерактивные эффекты
+- `VisibilityWrapper` - Компонент для управления видимостью
 
-### Lint with [ESLint](https://eslint.org/)
+## 🎮 Интерактивность
 
-```sh
-npm run lint
-```
+- Все секции реагируют на движение курсора
+- Интерактивные элементы с эффектами при наведении
+- Параллакс-эффекты при скролле
+- Звуковые эффекты при взаимодействии
+- Адаптивное поведение на разных устройствах
+
+## 🤝 Вклад в проект
+
+1. Форкните репозиторий
+2. Создайте ветку для ваших изменений (`git checkout -b feature/amazing-feature`)
+3. Зафиксируйте изменения (`git commit -m 'Add amazing feature'`)
+4. Отправьте изменения в ваш форк (`git push origin feature/amazing-feature`)
+5. Создайте Pull Request
+
+## 📝 Лицензия
+
+MIT License - подробности в файле [LICENSE](LICENSE)
+
+## 👏 Благодарности
+
+- [Vue.js](https://vuejs.org/) команде за отличный фреймворк
+- [Vite](https://vitejs.dev/) сообществу за быстрый инструмент сборки
+- [Three.js](https://threejs.org/) за возможности WebGL
+- Всем контрибьюторам проекта
+
+## 📞 Контакты
+
+- GitHub: [@s00d](https://github.com/s00d)
+- Проект: [ravedemo](https://github.com/s00d/ravedemo)
